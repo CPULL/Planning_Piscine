@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planning Piscine</title>
+  <link rel="icon" type="image/png" href="imgs/planning piscine.png">
+  <link rel="stylesheet" href="planning.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="page-login" class="page hidden">
+    <div class="login-wrap">
+      <img src="imgs/planning piscine.png" alt="Planning Piscine" class="login-logo">
+      <div class="login-box">
+        <h1>Planning <span>Piscine</span></h1>
+        <div id="login-error" class="error-msg hidden"></div>
+        <input id="login-username" type="text" placeholder="Nome utente" autocomplete="username">
+        <input id="login-password" type="password" placeholder="Password" autocomplete="current-password">
+        <button id="login-btn">Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <div id="page-app" class="page hidden">
+
+    <!-- TOP BAR -->
+    <div id="topbar">
+      <button id="hamburger-btn" aria-label="Menu">&#9776;</button>
+      <span id="app-title">Planning <span>Piscine</span></span>
+      <div id="structure-wrap" style="display:flex;align-items:center;gap:6px;font-size:13px">
+        <label style="color:#9ca3af;white-space:nowrap">Struttura:</label>
+        <select id="topbar-structure" style="font-size:13px;padding:4px 8px;border:1px solid #e0e3ea;border-radius:6px;background:#fff;color:#1a1a2e"></select>
+      </div>
+      <div id="user-menu-wrap">
+        <button id="user-menu-btn">
+          <span id="topbar-username"></span>
+          <span class="user-chevron">&#9660;</span>
+        </button>
+        <div id="user-menu" class="hidden">
+          <button id="btn-change-pwd">Cambia password</button>
+          <button id="btn-logout">Esci</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div id="app-body">
+      <div id="sidebar-overlay"></div>
+      <nav id="sidebar">
+        <div class="nav-group" id="nav-calendar-group">
+          <div class="nav-group-title">Calendario</div>
+          <button class="nav-item" data-section="cal-daily">Giornaliero</button>
+          <button class="nav-item hide-on-mobile" data-section="cal-weekly">Settimanale</button>
+          <button class="nav-item" data-section="cal-monthly">Mensile</button>
+          <button class="nav-item" data-section="cal-disponibilita">Prime disponibilità</button>
+          <button class="nav-item" data-section="cal-uso-giornaliero">Uso giornaliero</button>
+          <button class="nav-item" data-section="cal-uso-settimanale">Uso settimanale</button>
+        </div>
+        <div class="nav-group" id="nav-patients-group">
+          <div class="nav-group-title">Pazienti</div>
+          <button class="nav-item" data-section="pazienti-elenco">Elenco</button>
+          <button class="nav-item" data-section="pazienti-attesa">Lista di attesa</button>
+          <button class="nav-item" data-section="pazienti-avvisi">Avvisi</button>
+        </div>
+        <div class="nav-group hidden" id="nav-therapist-group">
+          <button class="nav-item" data-section="cal-daily">Giornaliero</button>
+          <button class="nav-item hide-on-mobile" data-section="cal-weekly">Settimanale</button>
+        </div>
+        <div class="nav-group hidden" id="nav-admin-group">
+          <div class="nav-group-title">Amministrazione</div>
+          <button class="nav-item" data-section="admin-users">Utenti</button>
+          <button class="nav-item" data-section="admin-convenzioni">Convenzioni</button>
+          <button class="nav-item" data-section="admin-gruppi">Gruppi</button>
+          <button class="nav-item" data-section="admin-ferie">Ferie / Assenze</button>
+        </div>
+      </nav>
+
+      <main id="content">
+
+        <!-- CALENDARIO -->
+        <section id="section-calendario" class="section hidden">
+          <div class="calendar-toolbar">
+            <div class="therapist-selector" id="cal-therapist-wrap">
+              <label>Terapista</label>
+              <select id="cal-therapist-select"><option value="">Tutti</option></select>
+            </div>
+            <div class="nav-controls" id="cal-nav-controls" style="display:none">
+              <button id="cal-prev">&#8249;</button>
+              <button id="cal-today">Oggi</button>
+              <button id="cal-next">&#8250;</button>
+              <span id="period-label"></span>
+            </div>
+          </div>
+          <div id="cal-no-therapist" class="hidden" style="padding:48px;text-align:center;color:#9ca3af;font-size:14px;background:#fff;border:1px solid #e0e3ea;border-radius:12px">
+            Nessun terapista disponibile per questa struttura
+          </div>
+          <div class="calendar-card">
+            <div id="view-monthly"></div>
+            <div id="view-weekly"></div>
+            <div id="view-daily"></div>
+          </div>
+        </section>
+
+        <!-- PRIME DISPONIBILITA -->
+        <section id="section-cal-disponibilita" class="section hidden">
+          <div class="section-header"><h2>Prime disponibilità</h2></div>
+          <div id="disponibilita-list"></div>
+        </section>
+
+        <!-- PAZIENTI ELENCO -->
+        <section id="section-pazienti-elenco" class="section hidden">
+          <div class="section-header">
+            <h2>Elenco Pazienti</h2>
+            <button id="btn-new-patient">+ Nuovo paziente</button>
+          </div>
+          <div class="list-toolbar">
+            <input id="patient-search" type="text" placeholder="Cerca per nome, telefono, codice fiscale…">
+            <div class="sort-controls">
+              <span>Ordina:</span>
+              <button class="sort-btn" data-sort="name">Nome</button>
+              <button class="sort-btn active" data-sort="data">Data inserimento</button>
+              <button class="sort-btn" data-sort="preferenza">Preferenza</button>
+              <button id="sort-dir-btn">&#8593;</button>
+            </div>
+          </div>
+          <div id="patient-form-container" class="hidden"></div>
+          <div id="patient-list"></div>
+          <div id="patient-pagination" class="pagination"></div>
+        </section>
+
+        <!-- PAZIENTI LISTA DI ATTESA -->
+        <section id="section-pazienti-attesa" class="section hidden">
+          <div class="section-header"><h2>Lista di Attesa</h2></div>
+          <div class="list-toolbar">
+            <select id="wl-filter-type">
+              <option value="">Tutti i tipi</option>
+              <option value="0">Legge 11</option>
+              <option value="1">HKT Individuale</option>
+              <option value="2">HKT Gruppo</option>
+            </select>
+            <select id="wl-filter-struttura">
+              <option value="">Tutte le strutture</option>
+              <option value="1">Ponti Rossi</option>
+              <option value="2">Porcellane</option>
+            </select>
+            <select id="wl-filter-gruppo">
+              <option value="">Tutti</option>
+              <option value="true">In gruppo</option>
+              <option value="false">Individuale</option>
+            </select>
+            <input id="wl-filter-preferenza" type="text" placeholder="Filtra per preferenza orario…">
+          </div>
+          <div id="wl-list"></div>
+        </section>
+
+        <!-- PAZIENTI AVVISI -->
+        <section id="section-pazienti-avvisi" class="section hidden">
+          <div class="section-header">
+            <h2>Avvisi</h2>
+            <button class="btn-secondary" id="btn-show-dismissed-alerts">Mostra gestiti</button>
+          </div>
+          <div id="avvisi-grid" class="avvisi-grid"></div>
+        </section>
+
+        <!-- PATIENT DETAIL -->
+        <section id="section-patient-detail" class="section hidden">
+          <div class="detail-back">
+            <button class="btn-secondary" id="btn-back-patients">&larr; Torna all'elenco</button>
+            <h2 id="detail-patient-name"></h2>
+          </div>
+          <div id="detail-patient-info"></div>
+          <div id="detail-patient-form" class="hidden"></div>
+          <div class="detail-block">
+            <div class="detail-block-header">
+              <span>Terapie</span>
+              <div style="display:flex;gap:8px">
+                <button class="btn-secondary hidden" id="btn-print-scheduling">🖨 Stampa pianificazione</button>
+                <button class="btn-secondary" id="btn-show-archived">Mostra completate/rifiutate</button>
+                <button class="btn-primary hidden" id="btn-new-therapy">+ Nuova terapia</button>
+              </div>
+            </div>
+            <div id="therapy-form-container" class="hidden"></div>
+            <div id="therapy-list"></div>
+          </div>
+        </section>
+
+        <!-- PLANNING -->
+        <section id="section-planning" class="section hidden">
+          <div class="planning-row1"><h2 id="planning-title">Pianificazione</h2></div>
+          <div class="planning-row2">
+            <button class="btn-primary hidden"   id="btn-accetta">✓ Accetta pianificazione</button>
+            <button class="btn-secondary hidden" id="btn-completa">⚡ Completa automaticamente</button>
+            <span id="plan-progress" class="hidden" style="font-size:13px;font-weight:600;color:#3b7fd4"></span>
+            <button class="btn-danger" id="btn-abbandona">✕ Abbandona</button>
+          </div>
+          <div class="planning-row3">
+            <div class="planning-control-item">
+              <label>Struttura</label>
+              <select id="plan-structure">
+                <option value="1">Ponti Rossi</option>
+                <option value="2">Porcellane</option>
+              </select>
+            </div>
+            <div class="planning-control-item">
+              <label>x/sett.</label>
+              <div class="plan-freq-wrap">
+                <input type="range" id="plan-frequency" min="1" max="5" value="1" style="width:80px">
+                <span id="plan-frequency-val">1</span>
+              </div>
+            </div>
+            <div class="planning-control-item">
+              <label>Pref.</label>
+              <span id="plan-patient-pref" class="plan-pref-val">–</span>
+            </div>
+            <div class="planning-week-nav">
+              <button class="week-nav-btn-lg" id="plan-prev-week">&#8249;</button>
+              <span id="plan-week-label"></span>
+              <button class="week-nav-btn-lg" id="plan-next-week">&#8250;</button>
+              <button class="btn-secondary" id="plan-today-week">Oggi</button>
+            </div>
+          </div>
+          <div id="plan-slot-grid"></div>
+          <div id="planning-step-preview" class="hidden">
+            <div class="planning-preview-info" id="plan-preview-info"></div>
+            <div id="plan-preview-calendar"></div>
+          </div>
+        </section>
+
+        <!-- ADMIN USERS -->
+        <section id="section-admin-users" class="section hidden">
+          <div class="section-header">
+            <h2>Gestione Utenti</h2>
+            <button id="btn-new-user">+ Nuovo utente</button>
+          </div>
+          <div id="user-form-container" class="hidden"></div>
+          <table>
+            <thead>
+              <tr>
+                <th>Colore</th><th>Nome completo</th><th>Login</th>
+                <th>Email</th><th>Telefono</th><th>Ruoli</th><th>Stato</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </section>
+
+        <!-- ADMIN FERIE/ASSENZE -->
+        <section id="section-admin-ferie" class="section hidden">
+          <div class="section-header">
+            <h2>Ferie e Assenze</h2>
+            <button id="btn-new-vacation">+ Nuova</button>
+          </div>
+          <div id="vacation-form-container" class="hidden">
+            <div class="form-box" style="margin-bottom:16px">
+              <h3 style="font-size:14px;font-weight:600">Nuova feria / assenza</h3>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Nome *</label>
+                  <input id="vf-name" type="text" placeholder="es. Natale">
+                </div>
+                <div class="form-field">
+                  <label>Terapista (vuoto = festività pubblica)</label>
+                  <select id="vf-therapist"><option value="">— Pubblica —</option></select>
+                </div>
+              </div>
+              <div class="form-field">
+                <label>Tipo</label>
+                <div style="display:flex;gap:16px;margin-top:6px">
+                  <label class="form-check"><input type="radio" name="vf-type" value="fixed" checked> Festività fissa (ogni anno)</label>
+                  <label class="form-check"><input type="radio" name="vf-type" value="dated"> Data specifica</label>
+                </div>
+              </div>
+              <div id="vf-fixed-fields">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label>Mese</label>
+                    <select id="vf-month">
+                      <option value="1">Gennaio</option><option value="2">Febbraio</option>
+                      <option value="3">Marzo</option><option value="4">Aprile</option>
+                      <option value="5">Maggio</option><option value="6">Giugno</option>
+                      <option value="7">Luglio</option><option value="8">Agosto</option>
+                      <option value="9">Settembre</option><option value="10">Ottobre</option>
+                      <option value="11">Novembre</option><option value="12">Dicembre</option>
+                    </select>
+                  </div>
+                  <div class="form-field">
+                    <label>Giorno</label>
+                    <input id="vf-day" type="number" min="1" max="31" value="1">
+                  </div>
+                </div>
+              </div>
+              <div id="vf-dated-fields" class="hidden">
+                <div class="form-row">
+                  <div class="form-field"><label>Data inizio</label><input id="vf-start" type="date"></div>
+                  <div class="form-field"><label>Data fine</label><input id="vf-end" type="date"></div>
+                </div>
+              </div>
+              <div id="vf-preview-container" class="hidden">
+                <div class="detail-block-header" style="padding:10px 14px;margin-top:8px">Slot interessati</div>
+                <div id="vf-preview-list" style="padding:12px 16px;font-size:13px"></div>
+              </div>
+              <div class="form-actions" style="margin-top:12px">
+                <button class="btn-secondary" id="btn-preview-vacation">Verifica impatto</button>
+                <button class="btn-primary" id="btn-save-vacation">Salva</button>
+                <button class="btn-secondary" id="btn-cancel-vacation">Annulla</button>
+              </div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Nome</th><th>Terapista</th><th>Tipo</th><th>Data / Periodo</th><th></th></tr>
+            </thead>
+            <tbody id="vacations-tbody"></tbody>
+          </table>
+        </section>
+
+        <!-- ADMIN GRUPPI -->
+        <section id="section-admin-gruppi" class="section hidden">
+          <div class="section-header">
+            <h2>Gestione Gruppi</h2>
+            <button id="btn-new-group">+ Nuovo gruppo</button>
+          </div>
+          <div id="group-form-container" class="hidden">
+            <div class="group-form-box">
+              <h3>Nuovo gruppo</h3>
+              <div class="group-form-fields">
+                <div class="form-field">
+                  <label>Terapista *</label>
+                  <select id="gf-therapist"><option value="">— seleziona —</option></select>
+                </div>
+                <div class="form-field">
+                  <label>Sesso *</label>
+                  <select id="gf-sex"><option value="">–</option><option value="M">Uomo</option><option value="F">Donna</option><option value="X">Misto</option></select>
+                </div>
+                <div class="form-field">
+                  <label>Slot selezionato</label>
+                  <span id="gf-slot-label" class="slot-label">Nessuno</span>
+                </div>
+              </div>
+              <div id="gf-week-grid" class="group-week-grid hidden"></div>
+              <div class="form-actions" style="margin-top:12px">
+                <button class="btn-primary" id="btn-save-group">Salva</button>
+                <button class="btn-secondary" id="btn-cancel-group">Annulla</button>
+              </div>
+            </div>
+          </div>
+          <div id="group-archive-container" class="hidden">
+            <div class="group-form-box">
+              <h3>Archivia gruppo</h3>
+              <div class="form-field" style="max-width:240px">
+                <label>Data di fine</label>
+                <input type="date" id="ga-enddate">
+              </div>
+              <div class="form-actions" style="margin-top:12px">
+                <button class="btn-primary" id="btn-save-archive">Salva</button>
+                <button class="btn-secondary" id="btn-cancel-archive">Annulla</button>
+              </div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Terapista</th><th>Giorno</th><th>Orario</th><th>Sesso</th><th>Stato</th><th></th></tr>
+            </thead>
+            <tbody id="groups-tbody"></tbody>
+          </table>
+        </section>
+
+        <!-- ADMIN CONVENZIONI -->
+        <section id="section-admin-convenzioni" class="section hidden">
+          <div class="section-header">
+            <h2>Gestione Convenzioni</h2>
+            <button id="btn-new-convenzione">+ Nuova</button>
+          </div>
+          <div id="convenzione-form-container" class="hidden">
+            <div class="form-box" style="max-width:400px;margin-bottom:16px">
+              <h3 style="font-size:14px;font-weight:600">Nuova convenzione / assicurazione</h3>
+              <div class="form-field">
+                <label>Nome</label>
+                <input id="conv-name" type="text">
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" id="btn-save-convenzione">Salva</button>
+                <button class="btn-secondary" id="btn-cancel-convenzione">Annulla</button>
+              </div>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Nome</th><th>Tipo</th><th>Stato</th><th></th></tr>
+            </thead>
+            <tbody id="convenzioni-tbody"></tbody>
+          </table>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div id="modal-overlay" class="hidden">
+      <div id="modal-box">
+        <h2>Cambia Password</h2>
+        <div id="pwd-error" class="error-msg hidden"></div>
+        <div id="pwd-success" class="success-msg hidden"></div>
+        <label>Password attuale</label>
+        <input id="pwd-current" type="password">
+        <label>Nuova password</label>
+        <input id="pwd-new" type="password">
+        <label>Conferma nuova password</label>
+        <input id="pwd-confirm" type="password">
+        <div class="form-actions">
+          <button class="btn-primary" id="btn-save-pwd">Aggiorna</button>
+          <button class="btn-secondary" id="btn-cancel-pwd">Annulla</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="planning.js"></script>
+</body>
+</html>
